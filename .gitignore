@@ -1,0 +1,8 @@
+# restos do espelho do site antigo (Construtor Hostinger) — não publicar
+_astro-*/
+assets/
+# originais pesados / rascunhos de imagem
+img/logo-ai-full.png
+img/logo-ai.svg
+img/fotos/*.jpg
+img/logo-marca-240.png
