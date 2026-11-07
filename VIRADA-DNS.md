@@ -1,6 +1,13 @@
 # Virada do DNS do drglobal.com.br — Hostinger → DNS do Registro.br
 
-## ✅ FEITA em 06–07/11/2026 (22h05 → 00h15) — o que aconteceu de verdade
+## ✅ DESTINO FINAL: Cloudflare (07/11/2026 02h50)
+- Servidores: **apollo.ns.cloudflare.com / roxy.ns.cloudflare.com** (conta Cloudflare do dono, plano Free).
+- Zona com 19 registros, **todos "DNS only"** (sem nuvem laranja — o Guard no Render e o GitHub Pages precisam assim),
+  e o **curinga `*` → drg-guard.onrender.com de volta**: condomínio novo do Guard abre sozinho.
+- Editar DNS daqui em diante: Cloudflare → drglobal.com.br → DNS → Records. A zona do Registro.br não vale mais.
+- Testado: e-mail (MX/SPF/DKIM/DMARC Zoho, Resend), Guard em 6 endereços + um inventado, site e www — tudo com cadeado.
+
+## Etapa intermediária: DNS do Registro.br (06–07/11/2026, 22h05 → 00h15) — o que aconteceu de verdade
 - 🔴 **O DNS do Registro.br NÃO aceita o curinga `*`** (nem `@`, nem SRV). O Guard ficou com **um CNAME por
   condomínio**: castelo-branco, reservanativa, reserva-nativa, residencial-rubi, rubi, adm → drg-guard.onrender.com.
   **Condomínio novo no Guard = cadastrar o CNAME dele no registro.br** (Configurar zona DNS → Nova entrada →
