@@ -66,3 +66,16 @@ Não recriar (eram da Hostinger e morrem com ela): `hostingermail-a/b/c._domaink
 3. E-mail: mandar e receber pelo Zoho; Zoho → Domínios → MX/SPF/DKIM "Verificar".
 4. Um e-mail automático do Guard (Resend) chega.
 5. Só então: cancelar a Hostinger (e desligar a renovação automática).
+
+## 🔴 07/11/2026 02h52–03h30 — Guard caiu na ativação da Cloudflare, e a PONTE resolveu
+- Ao ativar a zona, todo `*.drglobal.com.br` passou a dar **403 "Error 1000 — DNS points to prohibited IP"**:
+  o Render também roda atrás da Cloudflare, e CNAME (cinza ou laranja) de uma zona Cloudflare para ele é bloqueado
+  sem "orange-to-orange" — que exigiria a RAIZ apontando para o Render (a nossa raiz é o site no GitHub).
+- Solução: Worker **`drg-guard-ponte`** (código em `infra/guard-ponte/`), rota `*.drglobal.com.br/*`, que repassa ao
+  `drg-guard.onrender.com` com `X-Forwarded-Host` = endereço do condomínio (o Guard lê em `resolveTenant`).
+  O registro `*` fica **Proxied (laranja)** — rota de Worker só pega tráfego com proxy. SSL/TLS em **Full**.
+- Conferido: castelo-branco, reservanativa, residencial-rubi e rubi respondem 200 e `/api/health` mostra o tenant
+  certo em cada um; login (POST) passa; adm 302 → /adm; raiz e www continuam no GitHub (cinza, fora do Worker).
+- ⚠️ Qualquer subdomínio NOVO com nuvem laranja cai no Guard pela rota curinga. Outro app em `x.drglobal.com.br`:
+  deixe cinza ou crie rota própria.
+- Redeploy: `cd infra/guard-ponte && npx wrangler deploy` (conta Cloudflare do dono).
