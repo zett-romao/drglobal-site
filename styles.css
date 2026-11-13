@@ -14,7 +14,9 @@
   --sombra: 0 18px 40px -22px rgba(23, 24, 55, .35);
   --serif: "Cormorant Garamond", Georgia, serif;
   --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --topo-h: 84px;
+  --topo-h: 112px; /* = D.R. Global Imóveis (--altura-cab 112px) */
+  --serif-marca: "Playfair Display", Georgia, serif;
+  --cinza-marca: #5b6478;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: var(--topo-h); }
@@ -48,11 +50,11 @@ p { margin: 0 0 1em; }
 .topo { position: sticky; top: 0; z-index: 50; background: var(--branco); transition: box-shadow .25s; }
 .topo.rolou { box-shadow: 0 6px 24px -14px rgba(23, 24, 55, .4); }
 .topo__barra { height: var(--topo-h); display: flex; align-items: center; justify-content: space-between; gap: 24px; width: min(1240px, 100% - 32px); margin-inline: auto; }
-.topo__marca { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-.topo__marca img { width: 56px; height: 56px; }
-.topo__nome { display: flex; flex-direction: column; line-height: 1.1; }
-.topo__nome strong { font-family: var(--serif); font-size: 1.45rem; color: var(--marinho); }
-.topo__nome small { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ouro); font-weight: 600; }
+.topo__marca { display: flex; align-items: center; gap: 16px; text-decoration: none; min-width: 0; }
+.topo__marca img { height: 78px; width: auto; flex: none; }
+.topo__nome { display: flex; flex-direction: column; line-height: 1.1; font-size: 1.95rem; min-width: 0; }
+.topo__nome strong { font-family: var(--serif-marca); font-weight: 800; font-size: 1em; color: var(--marinho); }
+.topo__nome small { font-family: var(--sans); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--cinza-marca); font-weight: 600; margin-top: .35em; }
 .topo__menu { display: flex; align-items: center; gap: 30px; }
 .topo__menu a:not(.btn) { text-decoration: none; font-weight: 500; font-size: .96rem; color: var(--tinta); position: relative; padding: 6px 0; }
 .topo__menu a:not(.btn)::after { content: ""; position: absolute; left: 0; bottom: 0; height: 2px; width: 0; background: var(--ouro); transition: width .25s; }
@@ -169,10 +171,15 @@ body.menu-aberto .topo__burger span:nth-child(3) { transform: translateY(-7px) r
 @media (prefers-reduced-motion: reduce) { .revela { opacity: 1; transform: none; } .hero__fundo, .hero__descer { animation: none; } html { scroll-behavior: auto; } }
 
 /* ---------- responsivo ---------- */
+/* marca no celular = D.R. Global Imóveis (≤600px: cabeçalho 100px, logo 60px, nome 1.3rem) */
+@media (max-width: 600px) {
+  :root { --topo-h: 100px; }
+  .topo__marca { gap: 12px; }
+  .topo__marca img { height: 60px; }
+  .topo__nome { font-size: 1.3rem; }
+  .topo__nome small { font-size: .62rem; }
+}
 @media (max-width: 980px) {
-  :root { --topo-h: 72px; }
-  .topo__marca img { width: 46px; height: 46px; }
-  .topo__nome strong { font-size: 1.25rem; }
   .topo__burger { display: block; }
   .topo__menu { position: fixed; inset: var(--topo-h) 0 auto 0; background: var(--branco); flex-direction: column; align-items: stretch; gap: 0; padding: 8px 20px 24px; box-shadow: 0 20px 30px -20px rgba(23, 24, 55, .4); visibility: hidden; opacity: 0; transform: translateY(-8px); transition: opacity .2s, transform .2s, visibility .2s; }
   body.menu-aberto .topo__menu { visibility: visible; opacity: 1; transform: none; }
