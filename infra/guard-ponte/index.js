@@ -2,7 +2,11 @@
  * Com drglobal.com.br numa zona Cloudflare e o Render também atrás da Cloudflare,
  * o CNAME direto dá "Error 1000 — DNS points to prohibited IP". Este Worker pega o
  * pedido do condomínio e o repassa a drg-guard.onrender.com, dizendo em
- * X-Forwarded-Host qual condomínio é (o Guard lê esse cabeçalho em resolveTenant). */
+ * X-Forwarded-Host qual condomínio é (o Guard lê esse cabeçalho em resolveTenant).
+ *
+ * 🔒 14/11/2026 — REGRA RÍGIDA: o Guard hoje liga DIRETO (registro `*` CINZA/DNS only)
+ * e este Worker NÃO roda. Ele fica publicado só como RESERVA, para o caso de alguém
+ * ligar a nuvem laranja do `*` por engano. NÃO APAGAR. Ver VIRADA-DNS.md (topo). */
 const ORIGEM = 'drg-guard.onrender.com';
 export default {
   async fetch(request) {

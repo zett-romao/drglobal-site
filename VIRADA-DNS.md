@@ -1,5 +1,21 @@
 # Virada do DNS do drglobal.com.br — Hostinger → DNS do Registro.br
 
+## 🔒 REGRA RÍGIDA — Guard ligado DIRETO no Render (dono, 14/11/2026)
+Medido em 14/11/2026: `*.drglobal.com.br` = CNAME **DNS only (nuvem cinza)** → `drg-guard.onrender.com`;
+certificado curinga Let's Encrypt **do Render** (emitido 05/11/2026, **vence 03/02/2027**); cada subdomínio
+cai no condomínio certo. A ponte (Worker `drg-guard-ponte`, seção do fim) está publicada mas **não roda**.
+
+1. 🔒 **`*` fica CINZA.** Nunca ligar a nuvem laranja nele nem em subdomínio do Guard — laranja + Render = Error 1000.
+2. 🔒 **NÃO apagar o Worker `drg-guard-ponte`.** É a reserva caso alguém ligue o laranja por engano (custa zero parado).
+3. 🔒 **NÃO apagar/editar `_acme-challenge`** (→ drg-guard.verify.renderdns.com) **nem `_cf-custom-hostname`**
+   (→ drg-guard.hostname.renderdns.com): sem eles o certificado não renova e todos os condomínios ficam "não seguro".
+4. 🔒 **NÃO tirar `*.drglobal.com.br` dos Custom Domains** do serviço drg-guard no Render.
+5. 📅 **Início de jan/2027:** conferir a renovação —
+   `openssl s_client -connect castelo-branco.drglobal.com.br:443 -servername castelo-branco.drglobal.com.br | openssl x509 -noout -dates`
+   → `notAfter` tem de ser depois de 03/02/2027.
+
+Mudar qualquer item acima só com `ALTERAR:` do dono. A ida para Hurricane/deSEC ficou **descartada**.
+
 ## ✅ DESTINO FINAL: Cloudflare (07/11/2026 02h50)
 - Servidores: **apollo.ns.cloudflare.com / roxy.ns.cloudflare.com** (conta Cloudflare do dono, plano Free).
 - Zona com 19 registros, **todos "DNS only"** (sem nuvem laranja — o Guard no Render e o GitHub Pages precisam assim),
