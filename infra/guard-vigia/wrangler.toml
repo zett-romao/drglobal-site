@@ -11,4 +11,4 @@ crons = ["* * * * *"]
 #   npx wrangler kv namespace create VIGIA   → copiar o id abaixo
 [[kv_namespaces]]
 binding = "VIGIA"
-id = "PREENCHER_COM_O_ID_DO_KV"
+id = "8cf8e1dc387747dea5ec2b0418c506db"

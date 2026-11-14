@@ -82,7 +82,7 @@ async function avisar(env, msg) {
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ from: env.EMAIL_DE || 'DRG-Guard Vigia <vigia@send.drglobal.com.br>', to: [env.EMAIL_DESTINO], subject: msg.slice(0, 90), text: msg }),
+      body: JSON.stringify({ from: env.EMAIL_DE || 'DRG-Guard Vigia <vigia@drglobal.com.br>', to: [env.EMAIL_DESTINO], subject: msg.slice(0, 90), text: msg }),
     }).catch((e) => ({ ok: false, status: 0, text: async () => String(e) }));
     out.push(`email ${r.status}${r.ok ? '' : ' ' + (await r.text()).slice(0, 200)}`);
   }
