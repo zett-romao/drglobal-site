@@ -66,44 +66,79 @@ function texto(c, desde, agora, lembrete) {
   return '';
 }
 
+/* 👥 QUEM avisar (14/11/2026, do dono: "no meu usuário ou no de quem eu permitir"): a lista
+   vem do Guard (Configuração › 🚨 Alertas de queda) e fica guardada no KV — se o Guard cair,
+   vale a última lista lida. Antes da 1ª leitura (ou sem GUARD_VIGIA_TOKEN), vale DESTINO/EMAIL_DESTINO. */
+const LISTA_MIN = 10;
+async function atualizarLista(env, forcar) {
+  if (!env.GUARD_VIGIA_TOKEN) return null;
+  const ant = await env.VIGIA.get('destinos', 'json');
+  if (!forcar && ant && Date.now() - ant.em < LISTA_MIN * 60000) return ant;
+  try {
+    const r = await fetch(`${new URL(ALVOS.dominio).origin}/svc/vigia/destinos`, { headers: { authorization: `Bearer ${env.GUARD_VIGIA_TOKEN}` }, signal: AbortSignal.timeout(TIMEOUT_MS) });
+    if (!r.ok) return ant;
+    const j = await r.json();
+    const nova = { em: Date.now(), destinos: Array.isArray(j.destinos) ? j.destinos : [] };
+    if (!ant || JSON.stringify(ant.destinos) !== JSON.stringify(nova.destinos) || Date.now() - ant.em > 6 * 3600000) await env.VIGIA.put('destinos', JSON.stringify(nova));
+    return nova;
+  } catch (_) { return ant; }
+}
+async function alvos(env) {
+  const l = await env.VIGIA.get('destinos', 'json');
+  if (l && Array.isArray(l.destinos)) return l.destinos;
+  return [{ nome: 'dono', whatsapp: env.DESTINO || '', email: env.EMAIL_DESTINO || '' }];
+}
+
+async function enviarWa(env, para, msg) {
+  if (!(env.WHATSAPP_TOKEN && env.WHATSAPP_PHONE_ID && env.WHATSAPP_TEMPLATE && para)) return null;
+  const r = await fetch(`https://graph.facebook.com/v21.0/${env.WHATSAPP_PHONE_ID}/messages`, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${env.WHATSAPP_TOKEN}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ messaging_product: 'whatsapp', to: para, type: 'template',
+      template: { name: env.WHATSAPP_TEMPLATE, language: { code: env.WHATSAPP_LANG || 'pt_BR' },
+        components: [{ type: 'body', parameters: [{ type: 'text', text: msg.slice(0, 900) }] }] } }),
+  }).catch((e) => ({ ok: false, status: 0, text: async () => String(e) }));
+  return `whatsapp ${r.status}${r.ok ? '' : ' ' + (await r.text()).slice(0, 160)}`;
+}
+async function enviarEmail(env, para, msg) {
+  if (!(env.RESEND_API_KEY && para)) return null;
+  const r = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ from: env.EMAIL_DE || 'DRG-Guard Vigia <vigia@drglobal.com.br>', to: [para], subject: msg.slice(0, 90), text: msg }),
+  }).catch((e) => ({ ok: false, status: 0, text: async () => String(e) }));
+  return `email ${r.status}${r.ok ? '' : ' ' + (await r.text()).slice(0, 160)}`;
+}
 async function avisar(env, msg) {
-  const out = [];
-  if (env.WHATSAPP_TOKEN && env.WHATSAPP_PHONE_ID && env.WHATSAPP_TEMPLATE && env.DESTINO) {
-    const r = await fetch(`https://graph.facebook.com/v21.0/${env.WHATSAPP_PHONE_ID}/messages`, {
-      method: 'POST',
-      headers: { authorization: `Bearer ${env.WHATSAPP_TOKEN}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ messaging_product: 'whatsapp', to: env.DESTINO, type: 'template',
-        template: { name: env.WHATSAPP_TEMPLATE, language: { code: env.WHATSAPP_LANG || 'pt_BR' },
-          components: [{ type: 'body', parameters: [{ type: 'text', text: msg.slice(0, 900) }] }] } }),
-    }).catch((e) => ({ ok: false, status: 0, text: async () => String(e) }));
-    out.push(`whatsapp ${r.status}${r.ok ? '' : ' ' + (await r.text()).slice(0, 200)}`);
+  const lista = await alvos(env);
+  const vistos = new Set(); const out = [];
+  for (const d of lista) {
+    const wa = String(d.whatsapp || '').replace(/\D/g, '');
+    const em = String(d.email || '').trim().toLowerCase();
+    const r = [];
+    if (wa && !vistos.has(wa)) { vistos.add(wa); const x = await enviarWa(env, wa, msg); if (x) r.push(x); }
+    if (em && !vistos.has(em)) { vistos.add(em); const x = await enviarEmail(env, em, msg); if (x) r.push(x); }
+    if (r.length) out.push(`${d.nome || '?'}: ${r.join(', ')}`);
   }
-  if (env.RESEND_API_KEY && env.EMAIL_DESTINO) {
-    const r = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ from: env.EMAIL_DE || 'DRG-Guard Vigia <vigia@drglobal.com.br>', to: [env.EMAIL_DESTINO], subject: msg.slice(0, 90), text: msg }),
-    }).catch((e) => ({ ok: false, status: 0, text: async () => String(e) }));
-    out.push(`email ${r.status}${r.ok ? '' : ' ' + (await r.text()).slice(0, 200)}`);
-  }
-  return out.join(' · ') || 'nenhum canal configurado';
+  return { enviados: out.length, canal: out.join(' · ') || 'nenhum canal configurado' };
 }
 
 async function rodada(env) {
   const agora = Date.now();
   const [dom, res] = await Promise.all([medirFirme(ALVOS.dominio), medirFirme(ALVOS.reserva)]);
+  if (dom.ok) await atualizarLista(env, false);
   const c = classificar(dom, res);
   const ant = (await env.VIGIA.get('estado', 'json')) || { estado: 'ok', desde: agora, aviso: 0 };
   if (c.estado !== ant.estado) {
     let msg;
     if (c.estado === 'ok') msg = `✅ DRG-Guard VOLTOU às ${hora(agora)} (ficou ${ant.estado === 'memoria' ? 'com memória alta' : 'com problema'} por ${duracao(agora - ant.desde)}).`;
     else msg = texto(c, agora, agora, false);
-    const canal = await avisar(env, msg);
+    const { canal } = await avisar(env, msg);
     await env.VIGIA.put('estado', JSON.stringify({ estado: c.estado, desde: agora, aviso: agora, canal }));
     return { mudou: true, c, canal };
   }
   if (c.estado !== 'ok' && agora - (ant.aviso || 0) >= LEMBRETE_MIN * 60000) {
-    const canal = await avisar(env, texto(c, ant.desde, agora, true));
+    const { canal } = await avisar(env, texto(c, ant.desde, agora, true));
     await env.VIGIA.put('estado', JSON.stringify({ ...ant, aviso: agora, canal }));
     return { lembrete: true, c, canal };
   }
@@ -114,10 +149,13 @@ export default {
   async scheduled(_ev, env, ctx) { ctx.waitUntil(rodada(env)); },
   async fetch(req, env) {
     const u = new URL(req.url);
-    const autorizado = env.CHAVE_TESTE && u.searchParams.get('k') === env.CHAVE_TESTE;
+    const bearer = String(req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
+    const peloGuard = Boolean(env.GUARD_VIGIA_TOKEN) && bearer === env.GUARD_VIGIA_TOKEN;
+    const autorizado = (env.CHAVE_TESTE && u.searchParams.get('k') === env.CHAVE_TESTE) || peloGuard;
     if (u.pathname === '/teste' && autorizado) {
-      const canal = await avisar(env, `🧪 Teste do vigia do DRG-Guard (${hora(Date.now())}). Se chegou, os alertas de queda chegam aqui.`);
-      return Response.json({ ok: true, canal });
+      await atualizarLista(env, true);
+      const r = await avisar(env, `🧪 Teste do vigia do DRG-Guard (${hora(Date.now())}). Se chegou, os alertas de queda chegam aqui.`);
+      return Response.json({ ok: true, ...r });
     }
     if (u.pathname === '/estado' && autorizado) {
       return Response.json({ estado: await env.VIGIA.get('estado', 'json'), agora: await rodada(env) });
