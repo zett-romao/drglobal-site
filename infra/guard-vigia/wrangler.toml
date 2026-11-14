@@ -1,0 +1,14 @@
+# 🚨 Vigia de queda do DRG-Guard — ver index.js. Segredos: `wrangler secret put <NOME>` (nunca aqui: repo público).
+name = "drg-guard-vigia"
+main = "index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[triggers]
+crons = ["* * * * *"]
+
+# KV para guardar o último estado (grava só quando muda). Criar uma vez:
+#   npx wrangler kv namespace create VIGIA   → copiar o id abaixo
+[[kv_namespaces]]
+binding = "VIGIA"
+id = "PREENCHER_COM_O_ID_DO_KV"
