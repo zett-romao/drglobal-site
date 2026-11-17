@@ -5,7 +5,10 @@ compatibility_date = "2026-10-01"
 workers_dev = true
 
 [triggers]
-crons = ["* * * * *"]
+# ⏸ 17/11/2026 — DESLIGADO por ordem do dono: "desligue esses aviso que guard mande todas as vezes
+# que o sistema esta fora do ar. só gasto". Sem cron o Worker não mede nem avisa sozinho.
+# Para religar: crons = ["* * * * *"] e `npx wrangler deploy`.
+crons = []
 
 # KV para guardar o último estado (grava só quando muda). Criar uma vez:
 #   npx wrangler kv namespace create VIGIA   → copiar o id abaixo
