@@ -8,7 +8,7 @@ Substitui o site do Construtor de Sites da Hostinger (06/11/2026), que prendia o
 - `site.js` — menu ☰, entrada suave, formulário → WhatsApp **(11) 5296-0840** com a mensagem pronta
   (botão nunca mudo: trava, "⏳", responde em verde/vermelho, destrava).
 - `servicos/ sobre/ contato/ blog-list/` — redirecionam os endereços antigos para as seções.
-- **Logo:** recortada do vetor oficial `G:\Meu Drive\Logos\Logo_D.R.Global_Editavel.ai` — nunca redesenhar.
+- **Logo:** recortada do vetor oficial `G:\Meu Drive\Logos\Antigas\Logo_D.R.Global_Editavel.ai` — nunca redesenhar.
   Só sobre fundo branco (no rodapé escuro ela vai num cartão branco).
 - Fotos: Unsplash (licença livre), versões `.webp` em `img/fotos/`.
 
