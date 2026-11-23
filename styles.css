@@ -98,7 +98,7 @@ body.menu-aberto .topo__burger span:nth-child(3) { transform: translateY(-7px) r
 
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
 @media (min-width: 1000px) { .card--largo { grid-column: span 2; } } /* 5 cards em 3 colunas: o último fecha a linha */
-.card__marca { width: 76px; height: 76px; display: block; margin-bottom: 20px; border-radius: 14px; box-shadow: 0 6px 18px rgba(20,24,60,.18); }
+.card__marca { width: 76px; height: 76px; display: block; margin-bottom: 20px; border-radius: 22%; box-shadow: 0 6px 18px rgba(20,24,60,.18); }
 .card__link { display: inline-block; margin-top: 14px; font-weight: 600; color: var(--marinho); text-decoration: none; border-bottom: 1px solid var(--ouro); }
 .card__link:hover { color: var(--ouro); }
 .card { background: var(--branco); border: 1px solid var(--linha); border-radius: var(--raio); padding: 34px 30px; transition: transform .25s, box-shadow .25s, border-color .25s; }
